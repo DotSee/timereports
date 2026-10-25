@@ -1,0 +1,65 @@
+@model DotSeeReports.BehindPaceResults
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="num">Billable</th>
+      <th class="num">Non-billable</th>
+      <th class="num">Total</th>
+    </tr>
+  </thead>
+  <tbody id="tbody">
+    @if (!Model.AnySourceConfigured)
+    {
+      <tr class="empty-row"><td colspan="4">Cannot display reports — no data source is configured.</td></tr>
+    }
+    else if (Model.AllClear)
+    {
+      <tr class="all-clear-row"><td colspan="4">Everyone has reached the goal for this period.</td></tr>
+    }
+    else
+    {
+      @foreach (var row in Model.Rows)
+      {
+        <tr>
+          <td class="name-cell">@row.Name</td>
+          <td class="num billable-cell" title="@Model.Breakdown(row.TeamworkBillable, row.ProductiveBillable)">@Format.Minutes(row.BillableMinutes)</td>
+          <td class="num nonbillable-cell" title="@Model.Breakdown(row.TeamworkNonBillable, row.ProductiveNonBillable)">@Format.Minutes(row.NonBillableMinutes)</td>
+          <td class="num">@Format.Minutes(row.TotalMinutes)</td>
+        </tr>
+      }
+    }
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3">Total billable</td>
+      <td class="num" id="totBillable">@((Model.AnySourceConfigured && !Model.AllClear) ? Format.Minutes(Model.TotalBillable) : "—")</td>
+    </tr>
+    <tr>
+      <td colspan="3">Total non-billable</td>
+      <td class="num" id="totNonBillable">@((Model.AnySourceConfigured && !Model.AllClear) ? Format.Minutes(Model.TotalNonBillable) : "—")</td>
+    </tr>
+    <tr class="grand">
+      <td colspan="3">Grand total</td>
+      <td class="num" id="grandTotal">@((Model.AnySourceConfigured && !Model.AllClear) ? Format.Minutes(Model.GrandTotalMinutes) : "—")</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="goal-summary">
+  @if (Model.AnySourceConfigured)
+  {
+    <div class="goal-total">Total goal: @Format.Minutes(Model.TotalGoalMinutes) · @Model.MemberCount member@(Model.MemberCount == 1 ? "" : "s") × @Model.PeriodDays day@(Model.PeriodDays == 1 ? "" : "s")</div>
+    @if (Model.ShortfallMinutes > 0)
+    {
+      <div class="goal-warning">Team is @Format.Minutes(Model.ShortfallMinutes) behind the @(Model.GoalBillable ? "billable" : "total") goal</div>
+    }
+    else if (Model.ShortfallMinutes < 0)
+    {
+      <div class="goal-ahead">Team is @Format.Minutes(-Model.ShortfallMinutes) over the goal (@(Model.GoalBillable ? "billable hours only" : "billable + nonbillable hours"))</div>
+    }
+  }
+</div>
+
+<div class="status @(Model.StatusIsError ? "err" : "")" id="status">@Model.StatusText()</div>
+<span id="stampText" hidden>@Model.StampText</span>

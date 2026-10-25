@@ -1,0 +1,46 @@
+trigger:
+- master
+
+pool:
+  name: 'default'
+
+variables:
+  solution: '**/*.slnx'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  Environment: $(ENVIRONMENTNAME)
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
+steps:
+# - task: Cache@2
+#   displayName: Restore NuGet Cache
+#   inputs:
+#     key: 'nuget | "$(Agent.OS)" | **/*.csproj | **/*.slnx | nuget.config'
+#     restoreKeys: |
+#        nuget | "$(Agent.OS)"
+#        nuget
+#     path: '$(NUGET_PACKAGES)'
+#     cacheHitVar: 'CACHE_RESTORED'
+
+- task: DotNetCoreCLI@2
+  displayName: Build Solution
+  inputs:
+    projects: '$(solution)'
+    command: 'build'
+    arguments: '/nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:DeleteExistingFiles=True /p:SkipInvalidConfigurations=true /p:IncludeSetAclProviderOnDestination=False /p:AutoParameterizationWebConfigConnectionStrings=False /p:platform="$(BuildPlatform)" /p:PackageLocation="$(build.artifactstagingdirectory)" /p:EnvironmentName=$(Environment)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifact
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+    ArtifactName: 'drop'
+    
+- task: mirror-git-repository-vsts-task@1
+  displayName: 'Mirror Git Repository to https://github.com/DotSee/DotSee.timereports'
+  inputs:
+    sourceGitRepositoryUri: 'https://dev.azure.com/DotSeeWebServices/_git/DotSeeReports'
+    sourceGitRepositoryPersonalAccessToken: '$(AzureDevOpsMirrorPat)'
+    destinationGitRepositoryUri: 'https://github.com/DotSee/timereports'
+    destinationGitRepositoryPersonalAccessToken: '$(GitHubMirrorPat)'
+    

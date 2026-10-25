@@ -1,0 +1,18 @@
+@model DotSeeReports.MembersPanel
+<ul class="members-list">
+@foreach (var m in Model.Members)
+{
+    <li>
+        <span class="m-name">@m.Name</span>
+        @if (Model.TeamworkEnabled)
+        {
+            <span class="m-id">Teamwork #@m.TeamworkId</span>
+        }
+        @if (Model.ProductiveEnabled)
+        {
+            <span class="m-id">Productive @(m.ProductiveId != null ? "#" + m.ProductiveId : "— (not tracked)")</span>
+        }
+        <span class="m-id">@(m.IsManagement ? "Management" : "Team")</span>
+    </li>
+}
+</ul>

@@ -1,0 +1,78 @@
+@model DotSeeReports.LedgerResults
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="num">Billable</th>
+      <th class="num">Non-billable</th>
+      <th class="num">Total</th>
+      @if (Model.ShowGoals)
+      {
+        <th class="goal">Goal</th>
+      }
+    </tr>
+  </thead>
+  <tbody id="tbody">
+    @if (!Model.AnySourceConfigured)
+    {
+      <tr class="empty-row"><td colspan="@Model.ColumnCount">Cannot display reports — no data source is configured.</td></tr>
+    }
+    else
+    {
+      @foreach (var row in Model.Rows)
+      {
+        <tr>
+          <td class="name-cell">@row.Name</td>
+          <td class="num billable-cell" title="@Model.Breakdown(row.TeamworkBillable, row.ProductiveBillable)">@Format.Minutes(row.BillableMinutes)</td>
+          <td class="num nonbillable-cell" title="@Model.Breakdown(row.TeamworkNonBillable, row.ProductiveNonBillable)">@Format.Minutes(row.NonBillableMinutes)</td>
+          <td class="num">@Format.Minutes(row.TotalMinutes)</td>
+          @if (Model.ShowGoals)
+          {
+            <td class="goal-cell">
+              @if (row.GoalMet)
+              {
+                <img class="goal-icon" src="/images/goal-met.svg" alt="Goal met" title="Reached the daily goal">
+              }
+              else
+              {
+                <img class="goal-icon" src="/images/goal-missed.svg" alt="Goal not met" title="Below the daily goal">
+              }
+            </td>
+          }
+        </tr>
+      }
+    }
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3">Total billable</td>
+      <td class="num" colspan="@Model.TotalColspan" id="totBillable">@(Model.AnySourceConfigured ? Format.Minutes(Model.TotalBillable) : "—")</td>
+    </tr>
+    <tr>
+      <td colspan="3">Total non-billable</td>
+      <td class="num" colspan="@Model.TotalColspan" id="totNonBillable">@(Model.AnySourceConfigured ? Format.Minutes(Model.TotalNonBillable) : "—")</td>
+    </tr>
+    <tr class="grand">
+      <td colspan="3">Grand total</td>
+      <td class="num" colspan="@Model.TotalColspan" id="grandTotal">@(Model.AnySourceConfigured ? Format.Minutes(Model.GrandTotalMinutes) : "—")</td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="goal-summary">
+  @if (Model.ShowGoals && Model.AnySourceConfigured)
+  {
+    <div class="goal-total">Total goal for the day: @Format.Minutes(Model.TotalGoalMinutes) · @Model.MemberCount member@(Model.MemberCount == 1 ? "" : "s") × @Format.Minutes(Model.DailyGoalMinutes)</div>
+    @if (Model.ShortfallMinutes > 0)
+    {
+      <div class="goal-warning">Team is @Format.Minutes(Model.ShortfallMinutes) behind the @(Model.GoalBillable ? "billable" : "total") goal</div>
+    }
+    else if (Model.ShortfallMinutes < 0)
+    {
+      <div class="goal-ahead">Team is @Format.Minutes(-Model.ShortfallMinutes) over the goal (@(Model.GoalBillable ? "billable hours only" : "billable + nonbillable hours"))</div>
+    }
+  }
+</div>
+
+<div class="status @(Model.StatusIsError ? "err" : "")" id="status">@Model.StatusText()</div>
+<span id="stampText" hidden>@Model.StampText</span>

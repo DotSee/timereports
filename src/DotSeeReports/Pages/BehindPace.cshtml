@@ -1,0 +1,78 @@
+@page
+@model DotSeeReports.Pages.BehindPaceModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>@Model.CompanyName — Behind Pace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
+</head>
+<body data-teamwork="@(Model.TeamworkEnabled ? "true" : "false")"
+      data-productive="@(Model.ProductiveEnabled ? "true" : "false")"
+      data-goal-billable="@(Model.GoalIsBillable ? "true" : "false")"
+      data-include-weekends="@(Model.IncludeWeekends ? "true" : "false")">
+<div class="wrap">
+
+  <nav class="topnav">
+    <a class="brand" asp-page="/Index">@Model.ApplicationName</a>
+    <a asp-page="/Index">Home</a>
+    <a asp-page="/TimelogDashboard">Daily Time Ledger</a>
+    <a class="active" asp-page="/BehindPace">Behind Pace</a>
+  </nav>
+
+  <div class="masthead">
+    <div>
+      <h1>@Model.CompanyName — Behind Pace</h1>
+      <div class="sub">Active members short of their goal · @Model.SourcesLabel</div>
+    </div>
+    <div class="windowstamp" id="windowStamp">—</div>
+  </div>
+
+  <details class="members-panel">
+    <summary>Tracked team members</summary>
+    @await Html.PartialAsync("_MembersList", Model.MembersPanel)
+  </details>
+
+  <div class="controls">
+    <button id="prevBtn" aria-label="Previous day">&larr; Prev day</button>
+    <input type="date" id="datePicker" value="@Model.DefaultDate">
+    <button id="nextBtn" aria-label="Next day">Next day &rarr;</button>
+    <button class="today-btn" id="todayBtn">Today</button>
+  </div>
+
+  <div class="period-controls">
+    <label for="periodDays">Working days (excl. selected date):</label>
+    <input type="number" id="periodDays" min="1" max="60" value="@Model.WorkingDays">
+    <label for="goalHours" title="Per-member goal for each working day; the period goal is this × working days.">Daily goal / member (hours):</label>
+    <input type="number" id="goalHours" min="0" step="0.5" value="@Model.DailyGoalHours">
+    <button id="applyBtn">Apply</button>
+    <label class="switch-control" for="excludeMgmt" title="Hide members marked as management">
+      <input type="checkbox" id="excludeMgmt">
+      <span class="switch-track"></span>
+      <span>Exclude Management</span>
+    </label>
+  </div>
+
+  <div id="results">
+    @await Html.PartialAsync("_BehindPaceResults", Model.Results)
+  </div>
+
+  <div class="legend">
+    <span><span class="swatch b"></span> Billable</span>
+    <span><span class="swatch n"></span> Non-billable</span>
+    @if (Model.TeamworkEnabled && Model.ProductiveEnabled)
+    {
+      <span>Hover a number for the Teamwork / Productive breakdown</span>
+    }
+  </div>
+</div>
+
+<script src="~/js/reports.js" asp-append-version="true"></script>
+</body>
+</html>
