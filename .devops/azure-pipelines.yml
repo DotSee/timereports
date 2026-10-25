@@ -37,7 +37,7 @@ steps:
     ArtifactName: 'drop'
     
 - task: mirror-git-repository-vsts-task@1
-  displayName: 'Mirror Git Repository to https://github.com/DotSee/DotSee.timereports'
+  displayName: 'Mirror Git Repository to https://github.com/DotSee/timereports'
   inputs:
     sourceGitRepositoryUri: 'https://dev.azure.com/DotSeeWebServices/_git/DotSeeReports'
     sourceGitRepositoryPersonalAccessToken: '$(AzureDevOpsMirrorPat)'
